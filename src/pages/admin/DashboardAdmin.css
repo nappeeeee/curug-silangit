@@ -191,14 +191,143 @@
 }
 
 /* Popup Modal */
+/* Tambahan CSS untuk popup galeri dengan tombol hapus */
+.popup-content {
+  position: relative;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 500px;
+  max-height: 80%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.popup-content img {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+/* Tombol aksi di popup */
+.popup-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.delete-popup-button {
+  padding: 8px 16px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.delete-popup-button:hover {
+  background: #dc2626;
+}
+
+.close-popup-button {
+  padding: 8px 16px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.close-popup-button:hover {
+  background: #4b5563;
+}
+
+
+/* Tombol popup */
+.delete-popup-button,
+.close-popup-button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.delete-popup-button {
+  background: #ef4444;
+}
+
+.delete-popup-button:hover {
+  background: #dc2626;
+}
+
+.close-popup-button {
+  background: #3b82f6;
+}
+
+.close-popup-button:hover {
+  background: #2563eb;
+}
+
+/* Grup tombol di popup */
+.popup-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* Responsif untuk HP */
+@media (max-width: 600px) {
+  .popup-content {
+    max-width: 95%;
+    max-height: 80%;
+    padding: 10px;
+  }
+
+  .popup-content img {
+    max-height: 50vh;
+    width: auto;
+  }
+
+  .popup-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .delete-popup-button,
+  .close-popup-button {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px;
+  }
+}
+
+
 .popup-overlay {
   position: fixed;
-  inset: 0;
+  inset: 0; /* sama seperti top:0; right:0; bottom:0; left:0 */
   background: rgba(0, 0, 0, 0.6);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.3s ease;
+  align-items: center;   /* center secara vertikal */
+  justify-content: center; /* center secara horizontal */
+  z-index: 1000; /* pastikan di atas semua elemen */
+  overflow: auto; /* jaga kalau konten terlalu tinggi */
+}
+
+/* Saat popup terbuka, hilangkan scroll body */
+body.popup-open {
+  overflow: hidden;
 }
 
 .popup-content {
@@ -212,24 +341,6 @@
   align-items: center;
 }
 
-.popup-content img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-
-.close-button {
-  padding: 6px 14px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.close-button:hover {
-  background: #dc2626;
-}
 
 /* Animations */
 @keyframes fadeIn {

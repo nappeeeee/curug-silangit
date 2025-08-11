@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import './DashboardAdmin.css';
 import { uploadImage } from '@/utils/upload';
 import { getAllGaleri } from '@/utils/galeri';
-import { getFirestore, doc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, deleteDoc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { app } from '@/firebase/config';
 
 export default function DashboardAdmin() {
@@ -18,8 +18,9 @@ export default function DashboardAdmin() {
   const [galeri, setGaleri] = useState<any[]>([]);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedPublicId, setSelectedPublicId] = useState<string | null>(null);
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
-  // State untuk informasi wisata
   const [infoWisata, setInfoWisata] = useState({
     nama: '',
     deskripsi: '',
@@ -30,6 +31,9 @@ export default function DashboardAdmin() {
     fasilitas: ''
   });
   const [savingInfo, setSavingInfo] = useState(false);
+
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editUrl, setEditUrl] = useState('');
 
   useEffect(() => {
     const isLoggedIn = sessionStorage.getItem('adminLoggedIn');
@@ -102,6 +106,7 @@ export default function DashboardAdmin() {
       await deleteDoc(doc(db, 'galeri', docId));
 
       alert('Gambar berhasil dihapus!');
+      setShowPopup(false);
       await fetchGaleri();
     } catch (error) {
       console.error(error);
@@ -109,8 +114,30 @@ export default function DashboardAdmin() {
     }
   };
 
-  const handleView = (url: string) => {
+  const handleEdit = (id: string, url: string) => {
+    setEditId(id);
+    setEditUrl(url);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editId) return;
+    try {
+      const docRef = doc(db, 'galeri', editId);
+      await updateDoc(docRef, { url: editUrl });
+      alert('Data berhasil diperbarui!');
+      setEditId(null);
+      setEditUrl('');
+      await fetchGaleri();
+    } catch (error) {
+      console.error(error);
+      alert('Gagal memperbarui data.');
+    }
+  };
+
+  const handleView = (url: string, publicId: string, docId: string) => {
     setSelectedImage(url);
+    setSelectedPublicId(publicId);
+    setSelectedDocId(docId);
     setShowPopup(true);
   };
 
@@ -170,21 +197,29 @@ export default function DashboardAdmin() {
                 <div className="galeri-grid">
                   {galeri.map((item) => (
                     <div key={item.id} className="galeri-item">
-                      <img src={item.url} alt="Galeri" />
-                      <div className="button-group">
-                        <button
-                          className="view-button"
-                          onClick={() => handleView(item.url)}
-                        >
-                          Lihat
-                        </button>
-                        <button
-                          className="delete-button"
-                          onClick={() => handleDelete(item.public_id, item.id)}
-                        >
-                          Hapus
-                        </button>
-                      </div>
+                      {editId === item.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editUrl}
+                            onChange={(e) => setEditUrl(e.target.value)}
+                          />
+                          <button onClick={handleSaveEdit}>Simpan</button>
+                          <button onClick={() => setEditId(null)}>Batal</button>
+                        </>
+                      ) : (
+                        <>
+                          <img
+                            src={item.url}
+                            alt="Galeri"
+                            onClick={() => handleView(item.url, item.public_id, item.id)}
+                            style={{ cursor: 'pointer' }}
+                          />
+                          <div className="button-group">
+                            <button className="edit-button" onClick={() => handleEdit(item.id, item.url)}>Edit</button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -198,48 +233,12 @@ export default function DashboardAdmin() {
             <p>Ubah deskripsi, alamat, dan kontak wisata.</p>
 
             <div className="info-form">
-              <input
-                type="text"
-                name="nama"
-                placeholder="Nama Wisata"
-                value={infoWisata.nama}
-                onChange={handleInfoChange}
-              />
-              <textarea
-                name="deskripsi"
-                placeholder="Deskripsi Wisata"
-                value={infoWisata.deskripsi}
-                onChange={handleInfoChange}
-              />
-              <input
-                type="text"
-                name="kontak"
-                placeholder="Kontak"
-                value={infoWisata.kontak}
-                onChange={handleInfoChange}
-              />
-              <input
-                type="text"
-                name="instagram"
-                placeholder="Instagram"
-                value={infoWisata.instagram}
-                onChange={handleInfoChange}
-              />
-              <input
-                type="text"
-                name="jam"
-                placeholder="Jam Operasional"
-                value={infoWisata.jam}
-                onChange={handleInfoChange}
-              />
-              <input
-                type="text"
-                name="tiket"
-                placeholder="Harga Tiket"
-                value={infoWisata.tiket}
-                onChange={handleInfoChange}
-              />
-
+              <input type="text" name="nama" placeholder="Nama Wisata" value={infoWisata.nama} onChange={handleInfoChange} />
+              <textarea name="deskripsi" placeholder="Deskripsi Wisata" value={infoWisata.deskripsi} onChange={handleInfoChange} />
+              <input type="text" name="kontak" placeholder="Kontak" value={infoWisata.kontak} onChange={handleInfoChange} />
+              <input type="text" name="instagram" placeholder="Instagram" value={infoWisata.instagram} onChange={handleInfoChange} />
+              <input type="text" name="jam" placeholder="Jam Operasional" value={infoWisata.jam} onChange={handleInfoChange} />
+              <input type="text" name="tiket" placeholder="Harga Tiket" value={infoWisata.tiket} onChange={handleInfoChange} />
               <button onClick={handleSaveInfo} disabled={savingInfo}>
                 {savingInfo ? 'Menyimpan...' : 'Simpan Informasi'}
               </button>
@@ -253,10 +252,24 @@ export default function DashboardAdmin() {
         <div className="popup-overlay" onClick={() => setShowPopup(false)}>
           <div className="popup-content" onClick={(e) => e.stopPropagation()}>
             <img src={selectedImage} alt="Preview" />
-            <button className="close-button" onClick={() => setShowPopup(false)}>Tutup</button>
+            <div className="popup-actions">
+              <button
+                className="delete-popup-button"
+                onClick={() => handleDelete(selectedPublicId!, selectedDocId!)}
+              >
+                Hapus Gambar
+              </button>
+              <button
+                className="close-popup-button"
+                onClick={() => setShowPopup(false)}
+              >
+                Tutup
+              </button>
+            </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
